@@ -4,6 +4,10 @@
   "description": "Vercel MCP Adapter for Next.js and other frameworks",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "create-mcp-route": "./dist/cli/index.js",
+    "@vercel/mcp-adapter": "./dist/cli/index.js"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -45,6 +49,8 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.10.2",
+    "chalk": "^5.3.0",
+    "commander": "^11.1.0",
     "redis": "^4.6.0"
   },
   "devDependencies": {
