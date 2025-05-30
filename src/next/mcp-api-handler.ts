@@ -311,7 +311,7 @@ export function initializeMcpApiHandler(
           url: req.url,
           headers: Object.fromEntries(req.headers),
           body: bodyContent,
-          auth: (req as any).auth, // Use the auth info that should already be set by withMcpAuth
+          auth: req.auth, // Use the auth info that should already be set by withMcpAuth
         });
         
 

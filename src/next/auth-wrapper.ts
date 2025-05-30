@@ -1,6 +1,12 @@
 import { InvalidTokenError, InsufficientScopeError, ServerError } from '@modelcontextprotocol/sdk/server/auth/errors';
 import { AuthInfo } from '@modelcontextprotocol/sdk/server/auth/types';
 
+// Extend the Request type to include auth info
+declare global {
+  interface Request {
+    auth?: AuthInfo;
+  }
+}
 export interface McpAuthOptions {
   /**
    * Optional, scopes that the token must have.
@@ -33,7 +39,15 @@ export function withMcpAuth(
         throw new InvalidTokenError("Invalid Authorization header format, expected 'Bearer TOKEN'");
       }
 
-      const authInfo = await verifyToken(req, token);
+      let authInfo: AuthInfo;
+      try {
+        authInfo = await verifyToken(req, token);
+      } catch (error) {
+        // Handle any error from verifyToken as a 401
+        throw new InvalidTokenError(
+          error instanceof Error ? error.message : "Failed to verify token"
+        );
+      }
 
       // Check if token has the required scopes (if any)
       if (options.requiredScopes?.length) {
@@ -52,12 +66,13 @@ export function withMcpAuth(
       }
 
       // Set auth info on the request object after successful verification
-      (req as any).auth = authInfo;
+      req.auth = authInfo;
 
       return handler(req);
     } catch (error) {
       const origin = new URL(req.url).origin;
       const resourceMetadataUrl = options.resourceMetadataPath || `${origin}/.well-known/oauth-protected-resource`;
+      
       if (error instanceof InvalidTokenError) {
         return new Response(JSON.stringify(error.toResponseObject()), {
           status: 401,
