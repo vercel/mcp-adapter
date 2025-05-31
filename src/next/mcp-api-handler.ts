@@ -20,6 +20,7 @@ import type {
 } from "../lib/log-helper";
 import { createEvent } from "../lib/log-helper";
 import { EventEmittingResponse } from "../lib/event-emitter.js";
+import { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types";
 
 interface SerializedRequest {
   requestId: string;
@@ -310,7 +311,9 @@ export function initializeMcpApiHandler(
           url: req.url,
           headers: Object.fromEntries(req.headers),
           body: bodyContent,
+          auth: req.auth, // Use the auth info that should already be set by withMcpAuth
         });
+        
 
         // Create a response that will emit events
         const wrappedRes = new EventEmittingResponse(
@@ -636,19 +639,21 @@ interface FakeIncomingMessageOptions {
   url?: string;
   headers?: IncomingHttpHeaders;
   body?: BodyType;
+  auth?: AuthInfo;
   socket?: Socket;
 }
 
 // Create a fake IncomingMessage
 function createFakeIncomingMessage(
   options: FakeIncomingMessageOptions = {}
-): IncomingMessage {
+): IncomingMessage & { auth?: AuthInfo } {
   const {
     method = "GET",
     url = "/",
     headers = {},
     body = null,
     socket = new Socket(),
+    auth,
   } = options;
 
   // Create a readable stream that will be used as the base for IncomingMessage
@@ -672,12 +677,15 @@ function createFakeIncomingMessage(
   }
 
   // Create the IncomingMessage instance
-  const req = new IncomingMessage(socket);
+  const req = new IncomingMessage(socket) as IncomingMessage & { auth?: AuthInfo };
 
   // Set the properties
   req.method = method;
   req.url = url;
   req.headers = headers;
+  if (auth) {
+    req.auth = auth;
+  }
 
   // Copy over the stream methods
   req.push = readable.push.bind(readable);
