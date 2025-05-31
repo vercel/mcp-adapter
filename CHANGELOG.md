@@ -1,5 +1,11 @@
 # @vercel/mcp-adapter
 
+## 0.7.4
+
+### Patch Changes
+
+- 62518f2: Fix timeout scoping bug causing ReferenceError in SSE Handler
+
 ## 0.7.3
 
 ### Patch Changes
