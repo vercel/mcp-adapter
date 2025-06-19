@@ -1,10 +1,10 @@
-import { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
+import {AuthInfo} from "@modelcontextprotocol/sdk/server/auth/types.js";
 import {
   InvalidTokenError,
   InsufficientScopeError,
   ServerError,
 } from "@modelcontextprotocol/sdk/server/auth/errors.js";
-import { withAuthContext } from "./auth-context";
+import {withAuthContext} from "./auth-context";
 
 declare global {
   interface Request {
@@ -29,16 +29,32 @@ export function withMcpAuth(
   } = {}
 ) {
   return async (req: Request) => {
+    const origin = new URL(req.url).origin;
+    const resourceMetadataUrl = `${origin}${resourceMetadataPath}`;
+
+    const authHeader = req.headers.get("Authorization");
+    const [type, token] = authHeader?.split(" ") || [];
+
+    // Only support bearer token as per the MCP spec
+    // https://modelcontextprotocol.io/specification/2025-03-26/basic/authorization#2-6-1-token-requirements
+    const bearerToken = type?.toLowerCase() === "bearer" ? token : undefined;
+
+    let authInfo: AuthInfo | undefined;
     try {
-      const authHeader = req.headers.get("Authorization");
-      const [type, token] = authHeader?.split(" ") || [];
+      authInfo = await verifyToken(req, bearerToken);
+    } catch (error) {
+      console.error("Unexpected error authenticating bearer token:", error);
+      const publicError = new InvalidTokenError("Invalid token");
+      return new Response(JSON.stringify(publicError.toResponseObject()), {
+        status: 401,
+        headers: {
+          "WWW-Authenticate": `Bearer error="${publicError.errorCode}", error_description="${publicError.message}", resource_metadata="${resourceMetadataUrl}"`,
+          "Content-Type": "application/json",
+        },
+      });
+    }
 
-      // Only support bearer token as per the MCP spec
-      // https://modelcontextprotocol.io/specification/2025-03-26/basic/authorization#2-6-1-token-requirements
-      const bearerToken = type?.toLowerCase() === "bearer" ? token : undefined;
-
-      const authInfo = await verifyToken(req, bearerToken);
-
+    try {
       if (required && !authInfo) {
         throw new InvalidTokenError("No authorization provided");
       }
@@ -50,7 +66,7 @@ export function withMcpAuth(
       // Check if token has the required scopes (if any)
       if (requiredScopes?.length) {
         const hasAllScopes = requiredScopes.every((scope) =>
-          authInfo.scopes.includes(scope)
+          authInfo!.scopes.includes(scope)
         );
 
         if (!hasAllScopes) {
@@ -68,9 +84,6 @@ export function withMcpAuth(
 
       return withAuthContext(authInfo, () => handler(req));
     } catch (error) {
-      const origin = new URL(req.url).origin;
-      const resourceMetadataUrl = `${origin}${resourceMetadataPath}`;
-
       if (error instanceof InvalidTokenError) {
         return new Response(JSON.stringify(error.toResponseObject()), {
           status: 401,

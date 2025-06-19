@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import {describe, it, expect, beforeEach, afterEach, vi, Mock} from "vitest";
 import { z } from "zod";
 import {
   createServer,
@@ -16,6 +16,7 @@ describe("e2e", () => {
   let server: Server;
   let endpoint: string;
   let client: Client;
+  let verifyTokenMock: Mock;
 
   beforeEach(async () => {
     const _mcpHandler = createMcpHandler(
@@ -55,7 +56,7 @@ describe("e2e", () => {
       }
     );
 
-    const mcpHandler = withMcpAuth(_mcpHandler, (req) => {
+    verifyTokenMock = vi.fn((req) => {
       const header = req.headers.get("Authorization");
       if (header?.startsWith("Bearer ")) {
         const token = header.slice(7).trim();
@@ -66,7 +67,9 @@ describe("e2e", () => {
         });
       }
       return undefined;
-    });
+    })
+
+    const mcpHandler = withMcpAuth(_mcpHandler, verifyTokenMock);
 
     server = createServer(nodeToWebHandler(mcpHandler));
     await new Promise<void>((resolve) => {
@@ -172,6 +175,37 @@ describe("e2e", () => {
     expect((result.content as any)[0].text).toEqual(
       "Tool echo: Are you there? for ACCESS_TOKEN"
     );
+  });
+
+  it("should return an invalid token error when verifyToken fails", async () => {
+    const authenticatedTransport = new StreamableHTTPClientTransport(
+      new URL(`${endpoint}/mcp`),
+      {
+        requestInit: {
+          headers: {
+            Authorization: `Bearer ACCESS_TOKEN`,
+          },
+        },
+      }
+    );
+    const authenticatedClient = new Client(
+      {
+        name: "example-client",
+        version: "1.0.0",
+      },
+      {
+        capabilities: {
+          prompts: {},
+          resources: {},
+          tools: {},
+        },
+      }
+    );
+    verifyTokenMock.mockImplementation(() => {
+      throw new Error('JWT signature failed, or something')
+    })
+
+    expect(() => authenticatedClient.connect(authenticatedTransport)).rejects.toThrow('Invalid token')
   });
 });
 
