@@ -1,5 +1,11 @@
 # @vercel/mcp-adapter
 
+## 0.11.2
+
+### Patch Changes
+
+- c5c4ba5: chore: correctly resolve esm types
+
 ## 0.11.1
 
 ### Patch Changes
