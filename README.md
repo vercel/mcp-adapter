@@ -71,8 +71,8 @@ The above set up snippet will then look like:
 "remote-example": {
   "command": "npx",
   "args": [
-    "mcp-remote",
     "-y",
+    "mcp-remote",
     "http://localhost:3000/api/mcp" // this is your app/api/[transport]/route.ts
   ]
 }
@@ -95,8 +95,8 @@ In order to add an MCP server to Claude Desktop you need to edit the configurati
 "remote-example": {
   "command": "npx",
   "args": [
-    "mcp-remote",
     "-y",
+    "mcp-remote",
     "http://localhost:3000/api/mcp" // this is your app/api/[transport]/route.ts
   ]
 }
