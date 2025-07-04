@@ -53,7 +53,7 @@ export { handler as GET, handler as POST };
 ## Connecting to your MCP server via stdio
 
 Depending on the version of your client application, remote MCP's may need to use
-[mcp-remote](https://www.npmjs.com/package/mcp-remote) to proxy Streamble HTTP into stdio.
+[mcp-remote](https://www.npmjs.com/package/mcp-remote) to proxy Streamable HTTP into stdio.
 
 If your client supports it, it's recommended to connect to the Streamable HTTP endpoint directly such as:
 
@@ -83,7 +83,7 @@ The above set up snippet will then look like:
 When you want to use it in your MCP client of choice:
 
 Depending on the version of your client application, remote MCP's may need to use
-[mcp-remote](https://www.npmjs.com/package/mcp-remote) to proxy Streamble HTTP into Stdio.
+[mcp-remote](https://www.npmjs.com/package/mcp-remote) to proxy Streamable HTTP into Stdio.
 
 ### Claude Desktop
 
@@ -146,7 +146,7 @@ The `initializeMcpApiHandler` function accepts the following configuration optio
 ```typescript
 interface Config {
   redisUrl?: string; // Redis connection URL for pub/sub
-  basePath?: string; // string; // Base path for MCP endpoints
+  basePath?: string; // Base path for MCP endpoints
   maxDuration?: number; // Maximum duration for SSE connections in seconds
   verboseLogs?: boolean; // Log debugging information
 }
