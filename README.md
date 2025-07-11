@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/vercel-mcp-adapter-badge.png)](https://mseep.ai/app/vercel-mcp-adapter)
+
 # @vercel/mcp-adapter
 
 A Vercel adapter for the Model Context Protocol (MCP), enabling real-time communication between your applications and AI models. Currently supports Next.js with more framework adapters coming soon.
