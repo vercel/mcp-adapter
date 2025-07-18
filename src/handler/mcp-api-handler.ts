@@ -22,6 +22,7 @@ import { EventEmittingResponse } from "../lib/event-emitter.js";
 import { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types";
 import { getAuthContext } from "../auth/auth-context";
 import { ServerOptions } from ".";
+import { Logger, LogLevel, createDefaultLogger } from "../types/logger";
 
 interface SerializedRequest {
   requestId: string;
@@ -30,42 +31,13 @@ interface SerializedRequest {
   body: BodyType;
   headers: IncomingHttpHeaders;
 }
-
-type LogLevel = "log" | "error" | "warn" | "info" | "debug";
-
-type Logger = {
-  log: (...args: unknown[]) => void;
-  error: (...args: unknown[]) => void;
-  warn: (...args: unknown[]) => void;
-  info: (...args: unknown[]) => void;
-  debug: (...args: unknown[]) => void;
-};
-
-function createLogger(verboseLogs = false): Logger {
-  return {
-    log: (...args: unknown[]) => {
-      if (verboseLogs) console.log(...args);
-    },
-    error: (...args: unknown[]) => {
-      if (verboseLogs) console.error(...args);
-    },
-    warn: (...args: unknown[]) => {
-      if (verboseLogs) console.warn(...args);
-    },
-    info: (...args: unknown[]) => {
-      if (verboseLogs) console.info(...args);
-    },
-    debug: (...args: unknown[]) => {
-      if (verboseLogs) console.debug(...args);
-    },
-  };
-}
 /**
  * Configuration for the MCP handler.
  * @property redisUrl - The URL of the Redis instance to use for the MCP handler.
  * @property streamableHttpEndpoint - The endpoint to use for the streamable HTTP transport.
  * @property sseEndpoint - The endpoint to use for the SSE transport.
  * @property verboseLogs - If true, enables console logging.
+ * @property logger - Custom logger implementation. If provided, takes precedence over verboseLogs.
  */
 export type Config = {
   /**
@@ -125,6 +97,13 @@ export type Config = {
    * @default false
    */
   disableSse?: boolean;
+
+  /**
+   * Custom logger implementation.
+   * If provided, this logger will be used instead of the default console logger.
+   * Takes precedence over the verboseLogs option.
+   */
+  logger?: Logger;
 };
 
 /**
@@ -256,7 +235,7 @@ export function initializeMcpApiHandler(
       sseMessageEndpoint: explicitSseMessageEndpoint,
     });
 
-  const logger = createLogger(verboseLogs);
+  const logger = config.logger || createDefaultLogger({ verboseLogs });
 
   let servers: McpServer[] = [];
 

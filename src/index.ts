@@ -13,3 +13,10 @@ export {
   generateProtectedResourceMetadata,
   metadataCorsOptionsRequestHandler,
 } from "./auth/auth-metadata";
+
+export {
+  Logger,
+  LogLevel,
+  DefaultLoggerOptions,
+  createDefaultLogger,
+} from "./types/logger";
