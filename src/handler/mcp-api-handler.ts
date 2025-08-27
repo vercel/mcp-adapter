@@ -786,7 +786,7 @@ export function initializeMcpApiHandler(
         // Set timeout after subscription is established
         timeout = setTimeout(async () => {
           await sendResponse(408, "Request timed out");
-        }, 10 * 1000);
+        }, 600 * 1000);
 
         // Handle response close event
         res.on("close", async () => {
